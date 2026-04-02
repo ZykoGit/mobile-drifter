@@ -10,6 +10,8 @@ window.maxSpeed = 3.5;
 window.accel = 0.00025;
 window.shake = 0;
 
+window.phonkMode = false;
+
 window.initRender = function(c) {
   window.canvas = c;
   window.ctx = c.getContext('2d');
@@ -44,7 +46,6 @@ window.drawRoad = function(time) {
     window.ctx.stroke();
   }
 
-  // Side edges
   window.ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
   window.ctx.lineWidth = 3;
   window.ctx.beginPath();
@@ -57,8 +58,12 @@ window.drawRoad = function(time) {
 
 window.applyScreenTransform = function() {
   const t = clamp(window.speed / window.maxSpeed, 0, 1);
-  const zoom = 1 + t * 0.15;
-  const ellipse = 1 - t * 0.18;
+  let zoom = 1 + t * 0.15;
+  let ellipse = 1 - t * 0.18;
+  if (window.phonkMode) {
+    zoom *= 1.12;
+    ellipse *= 0.92;
+  }
 
   const shakeAmount = window.shake;
   const sx = (Math.random() * 2 - 1) * shakeAmount;
@@ -72,4 +77,15 @@ window.applyScreenTransform = function() {
 
 window.resetTransform = function() {
   window.ctx.setTransform(1, 0, 0, 1, 0, 0);
+};
+
+window.enterPhonkMode = function() {
+  if (window.phonkMode) return;
+  window.phonkMode = true;
+  window.maxSpeed *= 1.6;
+  window.pulseShake(12);
+  setTimeout(() => {
+    window.phonkMode = false;
+    window.maxSpeed /= 1.6;
+  }, 6000);
 };
