@@ -1,50 +1,50 @@
-let lastTime = 0;
+window.lastTime = 0;
 
-function initGame() {
+window.initGame = function() {
   const c = document.getElementById('game');
   initRender(c);
   setupInput(c);
 
   // Speed-based shake pulses
   setInterval(() => {
-    if (speed > maxSpeed * 0.6) {
-      shake = Math.max(shake, 6);
-    } else if (speed > maxSpeed * 0.3) {
-      shake = Math.max(shake, 3);
+    if (window.speed > window.maxSpeed * 0.6) {
+      window.shake = Math.max(window.shake, 6);
+    } else if (window.speed > window.maxSpeed * 0.3) {
+      window.shake = Math.max(window.shake, 3);
     }
   }, 600);
 
   requestAnimationFrame(gameLoop);
-}
+};
 
 function gameLoop(timestamp) {
-  const dt = timestamp - lastTime;
-  lastTime = timestamp;
+  const dt = timestamp - (window.lastTime || timestamp);
+  window.lastTime = timestamp;
 
   // Speed ramp
-  speed += accel * dt;
-  if (speed > maxSpeed) speed = maxSpeed;
+  window.speed += window.accel * dt;
+  if (window.speed > window.maxSpeed) window.speed = window.maxSpeed;
 
   // Update car + particles
-  updateCar(dt);
-  updateParticles(dt);
+  window.updateCar(dt);
+  window.updateParticles(dt);
 
   // Shake decay
-  shake *= 0.9;
+  window.shake *= 0.9;
 
   // Clear
-  resetTransform();
-  ctx.clearRect(0, 0, w, h);
+  window.resetTransform();
+  window.ctx.clearRect(0, 0, window.w, window.h);
 
   // Warp / zoom / shake
-  applyScreenTransform();
+  window.applyScreenTransform();
 
   // Draw world
-  drawRoad(timestamp);
-  drawParticles(ctx);
-  drawCar(ctx, w, h, cx, cy);
+  window.drawRoad(timestamp);
+  window.drawParticles(window.ctx);
+  window.drawCar(window.ctx, window.w, window.h, window.cx, window.cy);
 
-  resetTransform();
+  window.resetTransform();
 
   requestAnimationFrame(gameLoop);
 }
