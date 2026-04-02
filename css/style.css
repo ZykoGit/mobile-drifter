@@ -22,4 +22,6 @@ canvas {
   opacity: 0.85;
   z-index: 10;
   pointer-events: none;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
