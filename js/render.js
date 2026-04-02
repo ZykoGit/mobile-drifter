@@ -1,71 +1,75 @@
-let canvas, ctx;
-let w, h, cx, cy;
+window.canvas = null;
+window.ctx = null;
+window.w = 0;
+window.h = 0;
+window.cx = 0;
+window.cy = 0;
 
-let speed = 0.4;
-let maxSpeed = 3.5;
-let accel = 0.00025;
-let shake = 0;
+window.speed = 0.4;
+window.maxSpeed = 3.5;
+window.accel = 0.00025;
+window.shake = 0;
 
-function initRender(c) {
-  canvas = c;
-  ctx = canvas.getContext('2d');
+window.initRender = function(c) {
+  window.canvas = c;
+  window.ctx = c.getContext('2d');
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-}
+};
 
 function resizeCanvas() {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
-  cx = w / 2;
-  cy = h * 0.7;
+  window.w = window.canvas.width = window.innerWidth;
+  window.h = window.canvas.height = window.innerHeight;
+  window.cx = window.w / 2;
+  window.cy = window.h * 0.7;
 }
+window.resizeCanvas = resizeCanvas;
 
-function drawRoad(time) {
-  const laneCount = 5;
-  const roadWidthBottom = w * 0.9;
-  const roadWidthTop = w * 0.1;
-  const roadCenterX = cx + carX * w * 0.18;
+window.drawRoad = function(time) {
+  const roadWidthBottom = window.w * 0.9;
+  const roadWidthTop = window.w * 0.1;
+  const roadCenterX = window.cx + window.carX * window.w * 0.18;
 
   const lineCount = 18;
   for (let i = 0; i < lineCount; i++) {
-    const t = ((i / lineCount) + (time * speed * 0.002)) % 1;
-    const y = cy - (t * h * 0.9);
-    const width = roadWidthTop + (roadWidthBottom - roadWidthTop) * (y / h);
+    const t = ((i / lineCount) + (time * window.speed * 0.002)) % 1;
+    const y = window.cy - (t * window.h * 0.9);
+    const width = roadWidthTop + (roadWidthBottom - roadWidthTop) * (y / window.h);
     const alpha = 1 - t;
-    ctx.strokeStyle = `rgba(0, 229, 255, ${alpha})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(roadCenterX - width / 2, y);
-    ctx.lineTo(roadCenterX + width / 2, y);
-    ctx.stroke();
+    window.ctx.strokeStyle = `rgba(0, 229, 255, ${alpha})`;
+    window.ctx.lineWidth = 2;
+    window.ctx.beginPath();
+    window.ctx.moveTo(roadCenterX - width / 2, y);
+    window.ctx.lineTo(roadCenterX + width / 2, y);
+    window.ctx.stroke();
   }
 
   // Side edges
-  ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(roadCenterX - roadWidthBottom / 2, h);
-  ctx.lineTo(roadCenterX - roadWidthTop / 2, h * 0.1);
-  ctx.moveTo(roadCenterX + roadWidthBottom / 2, h);
-  ctx.lineTo(roadCenterX + roadWidthTop / 2, h * 0.1);
-  ctx.stroke();
-}
+  window.ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
+  window.ctx.lineWidth = 3;
+  window.ctx.beginPath();
+  window.ctx.moveTo(roadCenterX - roadWidthBottom / 2, window.h);
+  window.ctx.lineTo(roadCenterX - roadWidthTop / 2, window.h * 0.1);
+  window.ctx.moveTo(roadCenterX + roadWidthBottom / 2, window.h);
+  window.ctx.lineTo(roadCenterX + roadWidthTop / 2, window.h * 0.1);
+  window.ctx.stroke();
+};
 
-function applyScreenTransform() {
-  const t = clamp(speed / maxSpeed, 0, 1);
+window.applyScreenTransform = function() {
+  const t = clamp(window.speed / window.maxSpeed, 0, 1);
   const zoom = 1 + t * 0.15;
   const ellipse = 1 - t * 0.18;
 
-  const shakeAmount = shake;
+  const shakeAmount = window.shake;
   const sx = (Math.random() * 2 - 1) * shakeAmount;
   const sy = (Math.random() * 2 - 1) * shakeAmount;
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.translate(cx + sx, cy + sy);
-  ctx.scale(zoom, zoom * ellipse);
-  ctx.translate(-cx, -cy);
-}
+  window.ctx.setTransform(1, 0, 0, 1, 0, 0);
+  window.ctx.translate(window.cx + sx, window.cy + sy);
+  window.ctx.scale(zoom, zoom * ellipse);
+  window.ctx.translate(-window.cx, -window.cy);
+};
 
-function resetTransform() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-}
+window.resetTransform = function() {
+  window.ctx.setTransform(1, 0, 0, 1, 0, 0);
+};
