@@ -1,9 +1,8 @@
-let isPointerDown = false;
-let pointerStartX = 0;
-let pointerCurrentX = 0;
+window.isPointerDown = false;
+window.pointerStartX = 0;
+window.pointerCurrentX = 0;
 
-function setupInput(canvasElement) {
-  // Pointer
+window.setupInput = function(canvasElement) {
   canvasElement.addEventListener('mousedown', e => onPointerDown(e.clientX));
   window.addEventListener('mousemove', e => onPointerMove(e.clientX));
   window.addEventListener('mouseup', onPointerUp);
@@ -21,33 +20,32 @@ function setupInput(canvasElement) {
 
   canvasElement.addEventListener('touchend', onPointerUp);
 
-  // Keyboard
   window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft' || e.key === 'a') driftTarget = -1;
-    if (e.key === 'ArrowRight' || e.key === 'd') driftTarget = 1;
+    if (e.key === 'ArrowLeft' || e.key === 'a') window.driftTarget = -1;
+    if (e.key === 'ArrowRight' || e.key === 'd') window.driftTarget = 1;
   });
 
   window.addEventListener('keyup', e => {
     if (['ArrowLeft', 'ArrowRight', 'a', 'd'].includes(e.key)) {
-      driftTarget = 0;
+      window.driftTarget = 0;
     }
   });
-}
+};
 
 function onPointerDown(x) {
-  isPointerDown = true;
-  pointerStartX = x;
-  pointerCurrentX = x;
+  window.isPointerDown = true;
+  window.pointerStartX = x;
+  window.pointerCurrentX = x;
 }
 
 function onPointerMove(x) {
-  if (!isPointerDown) return;
-  pointerCurrentX = x;
-  const dx = pointerCurrentX - pointerStartX;
-  driftTarget = clamp(dx / (window.innerWidth * 0.3), -1, 1);
+  if (!window.isPointerDown) return;
+  window.pointerCurrentX = x;
+  const dx = window.pointerCurrentX - window.pointerStartX;
+  window.driftTarget = clamp(dx / (window.innerWidth * 0.3), -1, 1);
 }
 
 function onPointerUp() {
-  isPointerDown = false;
-  driftTarget = 0;
+  window.isPointerDown = false;
+  window.driftTarget = 0;
 }
