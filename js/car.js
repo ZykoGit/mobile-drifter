@@ -1,15 +1,18 @@
-let carX = 0;       // -1 to 1
-let drift = 0;      // -1 to 1
-let driftTarget = 0;
+// car state exposed globally
+window.carX = 0;       // -1..1
+window.drift = 0;      // -1..1
+window.driftTarget = 0;
 
-function updateCar(dt) {
-  drift += (driftTarget - drift) * 0.02 * dt;
-  carX += drift * 0.0015 * dt;
-  carX = clamp(carX, -1, 1);
-}
+window.updateCar = function(dt) {
+  // dt is ms; keep smoothing stable
+  const smoothFactor = 0.02;
+  window.drift += (window.driftTarget - window.drift) * smoothFactor * Math.min(1, dt / 16);
+  window.carX += window.drift * 0.0015 * dt;
+  window.carX = clamp(window.carX, -1, 1);
+};
 
-function drawCar(ctx, w, h, cx, cy) {
-  const x = cx + carX * w * 0.2;
+window.drawCar = function(ctx, w, h, cx, cy) {
+  const x = cx + window.carX * w * 0.2;
   const y = cy;
   const carWidth = w * 0.12;
   const carHeight = h * 0.12;
@@ -31,7 +34,7 @@ function drawCar(ctx, w, h, cx, cy) {
   // Body
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(drift * 0.35);
+  ctx.rotate(window.drift * 0.35);
   ctx.fillStyle = '#f5f5f5';
   ctx.fillRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
 
@@ -47,11 +50,11 @@ function drawCar(ctx, w, h, cx, cy) {
   ctx.restore();
 
   // Drift particles
-  if (Math.abs(drift) > 0.2) {
+  if (Math.abs(window.drift) > 0.2) {
     spawnDriftParticles(
-      x - carWidth * 0.4 * Math.sign(drift),
+      x - carWidth * 0.4 * Math.sign(window.drift),
       y + carHeight * 0.3,
-      -Math.sign(drift)
+      -Math.sign(window.drift)
     );
   }
-}
+};
