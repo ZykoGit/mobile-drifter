@@ -9,7 +9,8 @@ window.spawnDriftParticles = function(x, y, dir) {
       vy: -Math.random() * 0.5 - 0.2,
       life: 400 + Math.random() * 200,
       age: 0,
-      color: Math.random() < 0.5 ? '#ff00ff' : '#00e5ff'
+      color: Math.random() < 0.5 ? '#ff00ff' : '#00e5ff',
+      size: randRange(2, 5)
     });
   }
 };
@@ -24,6 +25,8 @@ window.updateParticles = function(dt) {
     }
     p.x += p.vx * dt;
     p.y += p.vy * dt;
+    // slight gravity
+    p.vy += 0.001 * dt;
   }
 };
 
@@ -34,7 +37,7 @@ window.drawParticles = function(ctx) {
     ctx.globalAlpha = alpha;
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 3 + 3 * (1 - t), 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, p.size * (1 + (1 - t)), 0, Math.PI * 2);
     ctx.fill();
   });
   ctx.globalAlpha = 1;
