@@ -1,11 +1,9 @@
-function clamp(v, min, max) {
-  return v < min ? min : v > max ? max : v;
-}
-
-function lerp(a, b, t) {
+window.clamp = function(v, a, b) {
+  return v < a ? a : v > b ? b : v;
+};
+window.lerp = function(a, b, t) {
   return a + (b - a) * t;
-}
-
-function randRange(min, max) {
+};
+window.randRange = function(min, max) {
   return Math.random() * (max - min) + min;
-}
+};
