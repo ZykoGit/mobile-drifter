@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <title>Neon Drift Rush</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="overlay">NEON DRIFT RUSH</div>
   <canvas id="game"></canvas>
 
-  <!-- Load scripts in order -->
-<script src="js/utils.js"></script>
-<script src="js/particles.js"></script>
-<script src="js/car.js"></script>
-<script src="js/render.js"></script>
-<script src="js/input.js"></script>
-<script src="js/game.js"></script>
-
+  <!-- Load scripts in dependency-safe order -->
+  <script src="js/utils.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/car.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>
