@@ -11,7 +11,7 @@ window.lastTime = 0;
 window.shake = 0;
 window.gameRunning = false;
 
-window.initGame = function() {
+window.initGame = async function() {
   canvas = document.getElementById('game');
   ctx = canvas.getContext('2d');
 
@@ -19,13 +19,22 @@ window.initGame = function() {
   window.addEventListener('resize', resizeCanvas);
 
   setupInput(canvas);
-  generateProceduralTrack();
-  initCarOnTrack();
   initHUD();
+  await loadLevelsMeta();
 
   const home = document.getElementById('home-screen');
   const btnStart = document.getElementById('btn-start');
-  btnStart.addEventListener('click', () => {
+  const trackSelect = document.getElementById('track-select');
+
+  btnStart.addEventListener('click', async () => {
+    const selectedId = trackSelect.value;
+    const selectedMeta = levels.meta.find(m => m.id === selectedId);
+    if (!selectedMeta) return;
+    if (selectedMeta.number > levels.unlockedMax) return; // locked
+
+    await loadTrack(selectedId);
+    initCarOnTrack();
+    document.getElementById('hud-track').textContent = track.name;
     home.style.display = 'none';
     gameRunning = true;
     lastTime = performance.now();
@@ -38,19 +47,19 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
   cam.screenW = canvas.width;
   cam.screenH = canvas.height;
-  cam.zoom = Math.min(canvas.width, canvas.height) / 600; /* bigger world on screen */
+  cam.zoom = Math.min(canvas.width, canvas.height) / 600;
 }
 
 function updateCamera(dt) {
   const targetX = car.x;
   const targetY = car.y;
-  cam.x = lerp(cam.x, targetX, 0.1);
-  cam.y = lerp(cam.y, targetY, 0.1);
+  cam.x = lerp(cam.x, targetX, 0.12);
+  cam.y = lerp(cam.y, targetY, 0.12);
 
   const baseZoom = Math.min(cam.screenW, cam.screenH) / 600;
   const speedFactor = clamp(car.speed / 1200, 0, 1);
-  const targetZoom = baseZoom * (1 - speedFactor * 0.2);
-  cam.zoom = lerp(cam.zoom, targetZoom, 0.06);
+  const targetZoom = baseZoom * (1 - speedFactor * 0.18);
+  cam.zoom = lerp(cam.zoom, targetZoom, 0.08);
 
   if (shake > 0.1) {
     const sx = (Math.random() * 2 - 1) * shake;
