@@ -9,8 +9,8 @@ window.car = {
   lapProgress: 0,
   lastPointIndex: 0,
 
-  width: 70,   // hitbox width
-  height: 38   // hitbox height
+  width: 70,
+  height: 38
 };
 
 window.initCarOnTrack = function() {
@@ -32,35 +32,31 @@ window.initCarOnTrack = function() {
 window.updateCar = function(dt) {
   const dtSec = dt / 1000;
 
-  // TUNING CONSTANTS
-  const accel = 900;
-  const maxSpeed = 1200;
-  const steerStrength = 3.2;
-  const driftFactor = 0.14;
+  // MUCH MORE PLAYABLE VALUES
+  const accel = 450;          // was 900
+  const maxSpeed = 750;       // was 1200
+  const steerStrength = 2.2;  // was 3.2
+  const driftFactor = 0.22;   // was 0.14 (more grip)
 
   // ACCELERATION
-  if (input.throttle > 0) {
-    car.speed += accel * dtSec * input.throttle;
-  } else {
-    car.speed *= 0.995;
-  }
+  if (input.throttle > 0) car.speed += accel * dtSec;
+  else car.speed *= 0.985;
 
   // BRAKING
-  if (input.braking > 0) {
-    car.speed *= 0.96;
-  }
+  if (input.braking > 0) car.speed *= 0.92;
 
   car.speed = clamp(car.speed, 0, maxSpeed);
 
-  // STEERING
-  const steer = input.steer * steerStrength * (car.speed / maxSpeed);
+  // SPEED-BASED STEERING LIMIT
+  const steerLimit = lerp(1.0, 0.35, car.speed / maxSpeed);
+  const steer = input.steer * steerStrength * steerLimit;
   car.angle += steer * dtSec;
 
   // TARGET VELOCITY
   const targetVx = Math.cos(car.angle) * car.speed;
   const targetVy = Math.sin(car.angle) * car.speed;
 
-  // DRIFT BLEND
+  // MORE GRIP
   car.vx = lerp(car.vx, targetVx, driftFactor);
   car.vy = lerp(car.vy, targetVy, driftFactor);
 
@@ -68,31 +64,28 @@ window.updateCar = function(dt) {
   car.x += car.vx * dtSec;
   car.y += car.vy * dtSec;
 
-  // DRIFT ANGLE CALC
+  // DRIFT ANGLE
   const forwardAngle = car.angle;
   const velAngle = Math.atan2(car.vy, car.vx);
-
   let diff = velAngle - forwardAngle;
   while (diff > Math.PI) diff -= Math.PI * 2;
   while (diff < -Math.PI) diff += Math.PI * 2;
-
   car.driftAngle = diff;
 
-  // OFF-TRACK COLLISION
+  // OFF-TRACK COLLISION (less harsh)
   if (window.isOffTrack(car.x, car.y)) {
-    car.speed *= 0.92;          // slow down
-    window.shake = Math.max(window.shake, 10); // camera shake
+    car.speed *= 0.97;               // was 0.92
+    window.shake = Math.max(window.shake, 4); // was 10
   }
 
   // DRIFT PARTICLES
-  const driftMag = Math.abs(diff);
-  if (driftMag > 0.18 && car.speed > 250) {
+  if (Math.abs(diff) > 0.22 && car.speed > 200) {
     const backX = car.x - Math.cos(car.angle) * 30;
     const backY = car.y - Math.sin(car.angle) * 30;
     spawnDriftTrail(backX, backY, velAngle + Math.PI);
   }
 
-  // LAP PROGRESS (nearest point)
+  // LAP PROGRESS
   let bestIdx = car.lastPointIndex;
   let bestDist = Infinity;
 
@@ -107,7 +100,6 @@ window.updateCar = function(dt) {
     }
   }
 
-  // LAP COMPLETE
   if (bestIdx < car.lastPointIndex && car.lastPointIndex > track.points.length * 0.6) {
     window.onLapComplete();
   }
@@ -129,17 +121,17 @@ window.drawCar = function(ctx, cam) {
 
   // UNDERGLOW
   ctx.save();
-  ctx.globalAlpha = 0.7;
-  ctx.fillStyle = 'rgba(0,229,255,0.4)';
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = 'rgba(0,229,255,0.35)';
   ctx.beginPath();
-  ctx.ellipse(0, h*0.2, w*0.9, h*0.6, 0, 0, Math.PI*2);
+  ctx.ellipse(0, h*0.25, w*0.9, h*0.7, 0, 0, Math.PI*2);
   ctx.fill();
   ctx.restore();
 
   // GLOW BODY
   ctx.save();
   ctx.shadowColor = '#ff00ff';
-  ctx.shadowBlur = 30;
+  ctx.shadowBlur = 25;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(-w/2, -h/2, w, h);
   ctx.restore();
