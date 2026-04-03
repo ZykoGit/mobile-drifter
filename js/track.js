@@ -1,47 +1,35 @@
 window.track = {
   points: [],
-  width: 40,
+  width: 120,
   lapLength: 0
 };
 
 window.generateProceduralTrack = function() {
   const pts = [];
-  const radius = 400;
-  const segments = 40;
+  const segments = 80;
+  const baseRadius = 650;
+  let radius = baseRadius;
   let angle = 0;
-  let x = 0, y = 0;
+  const angleStep = (Math.PI * 2) / segments;
 
   for (let i = 0; i < segments; i++) {
-    const turn = randRange(-0.4, 0.4);
-    angle += turn;
-    const step = randRange(40, 80);
-    x += Math.cos(angle) * step;
-    y += Math.sin(angle) * step;
-    pts.push({ x, y });
-  }
+    // smooth radius variation
+    radius += randRange(-40, 40);
+    radius = clamp(radius, baseRadius * 0.7, baseRadius * 1.3);
 
-  // center track
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  pts.forEach(p => {
-    if (p.x < minX) minX = p.x;
-    if (p.x > maxX) maxX = p.x;
-    if (p.y < minY) minY = p.y;
-    if (p.y > maxY) maxY = p.y;
-  });
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  pts.forEach(p => {
-    p.x -= cx;
-    p.y -= cy;
-  });
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    pts.push({ x, y });
+
+    angle += angleStep + randRange(-0.05, 0.05);
+  }
 
   // close loop
   pts.push({ x: pts[0].x, y: pts[0].y });
 
   track.points = pts;
-  track.width = 70;
 
-  // approximate lap length
+  // lap length
   let len = 0;
   for (let i = 1; i < pts.length; i++) {
     const dx = pts[i].x - pts[i-1].x;
@@ -58,10 +46,10 @@ window.drawTrack = function(ctx, cam) {
   ctx.lineCap = 'round';
 
   // outer glow
-  ctx.strokeStyle = 'rgba(0,229,255,0.25)';
-  ctx.lineWidth = track.width * cam.zoom * 1.6;
+  ctx.strokeStyle = 'rgba(0,229,255,0.3)';
+  ctx.lineWidth = track.width * cam.zoom * 1.8;
   ctx.shadowColor = '#00e5ff';
-  ctx.shadowBlur = 40;
+  ctx.shadowBlur = 50;
   ctx.beginPath();
   track.points.forEach((p, i) => {
     const sx = (p.x - cam.x) * cam.zoom + cam.screenW / 2;
@@ -73,8 +61,8 @@ window.drawTrack = function(ctx, cam) {
 
   // main road
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#111122';
-  ctx.lineWidth = track.width * cam.zoom;
+  ctx.strokeStyle = '#0b0b18';
+  ctx.lineWidth = track.width * cam.zoom * 1.1;
   ctx.beginPath();
   track.points.forEach((p, i) => {
     const sx = (p.x - cam.x) * cam.zoom + cam.screenW / 2;
@@ -85,9 +73,9 @@ window.drawTrack = function(ctx, cam) {
   ctx.stroke();
 
   // center neon line
-  ctx.strokeStyle = 'rgba(255,0,255,0.9)';
-  ctx.lineWidth = 3 * cam.zoom;
-  ctx.setLineDash([16 * cam.zoom, 16 * cam.zoom]);
+  ctx.strokeStyle = 'rgba(255,0,255,0.95)';
+  ctx.lineWidth = 4 * cam.zoom;
+  ctx.setLineDash([22 * cam.zoom, 18 * cam.zoom]);
   ctx.beginPath();
   track.points.forEach((p, i) => {
     const sx = (p.x - cam.x) * cam.zoom + cam.screenW / 2;
