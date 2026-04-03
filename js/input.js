@@ -1,51 +1,60 @@
-window.isPointerDown = false;
-window.pointerStartX = 0;
-window.pointerCurrentX = 0;
-
-window.setupInput = function(canvasElement) {
-  canvasElement.addEventListener('mousedown', e => onPointerDown(e.clientX));
-  window.addEventListener('mousemove', e => onPointerMove(e.clientX));
-  window.addEventListener('mouseup', onPointerUp);
-
-  canvasElement.addEventListener('touchstart', e => {
-    const t = e.touches[0];
-    onPointerDown(t.clientX);
-  }, { passive: false });
-
-  canvasElement.addEventListener('touchmove', e => {
-    const t = e.touches[0];
-    onPointerMove(t.clientX);
-    e.preventDefault();
-  }, { passive: false });
-
-  canvasElement.addEventListener('touchend', onPointerUp);
-
-  window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft' || e.key === 'a') window.driftTarget = -1;
-    if (e.key === 'ArrowRight' || e.key === 'd') window.driftTarget = 1;
-  });
-
-  window.addEventListener('keyup', e => {
-    if (['ArrowLeft', 'ArrowRight', 'a', 'd'].includes(e.key)) {
-      window.driftTarget = 0;
-    }
-  });
+window.input = {
+  steer: 0,
+  throttle: 0,
+  braking: 0
 };
 
-function onPointerDown(x) {
-  window.isPointerDown = true;
-  window.pointerStartX = x;
-  window.pointerCurrentX = x;
-}
+(function() {
+  let pointerDown = false;
+  let pointerX = 0;
 
-function onPointerMove(x) {
-  if (!window.isPointerDown) return;
-  window.pointerCurrentX = x;
-  const dx = window.pointerCurrentX - window.pointerStartX;
-  window.driftTarget = clamp(dx / (window.innerWidth * 0.3), -1, 1);
-}
+  window.setupInput = function(canvas) {
+    canvas.addEventListener('mousedown', e => {
+      pointerDown = true;
+      pointerX = e.clientX;
+    });
+    window.addEventListener('mouseup', () => {
+      pointerDown = false;
+      input.steer = 0;
+      input.throttle = 0;
+    });
+    window.addEventListener('mousemove', e => {
+      if (!pointerDown) return;
+      const dx = e.clientX - pointerX;
+      input.steer = clamp(dx / (window.innerWidth * 0.25), -1, 1);
+      input.throttle = 1;
+    });
 
-function onPointerUp() {
-  window.isPointerDown = false;
-  window.driftTarget = 0;
-}
+    canvas.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      pointerDown = true;
+      pointerX = t.clientX;
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      const dx = t.clientX - pointerX;
+      input.steer = clamp(dx / (window.innerWidth * 0.25), -1, 1);
+      input.throttle = 1;
+      e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
+      pointerDown = false;
+      input.steer = 0;
+      input.throttle = 0;
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') input.steer = -1;
+      if (e.key === 'ArrowRight' || e.key === 'd') input.steer = 1;
+      if (e.key === 'ArrowUp' || e.key === 'w') input.throttle = 1;
+      if (e.key === 'ArrowDown' || e.key === 's') input.braking = 1;
+    });
+    window.addEventListener('keyup', e => {
+      if (['ArrowLeft','a','ArrowRight','d'].includes(e.key)) input.steer = 0;
+      if (['ArrowUp','w'].includes(e.key)) input.throttle = 0;
+      if (['ArrowDown','s'].includes(e.key)) input.braking = 0;
+    });
+  };
+})();
