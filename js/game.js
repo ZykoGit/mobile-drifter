@@ -5,7 +5,17 @@ window.initGame = function() {
   initRender(c);
   setupInput(c);
 
-  // Speed-based shake pulses
+  // optional: initAudio('assets/sem_nada_like_loop.mp3'); // add file if you have rights
+
+  // double-tap / double-click to trigger Phonk Mode
+  let lastTap = 0;
+  c.addEventListener('touchend', () => {
+    const now = performance.now();
+    if (now - lastTap < 300) window.enterPhonkMode();
+    lastTap = now;
+  });
+  c.addEventListener('dblclick', () => window.enterPhonkMode());
+
   setInterval(() => {
     if (window.speed > window.maxSpeed * 0.6) {
       window.shake = Math.max(window.shake, 6);
@@ -21,26 +31,30 @@ function gameLoop(timestamp) {
   const dt = timestamp - (window.lastTime || timestamp);
   window.lastTime = timestamp;
 
-  // Speed ramp
   window.speed += window.accel * dt;
   if (window.speed > window.maxSpeed) window.speed = window.maxSpeed;
 
-  // Update car + particles
   window.updateCar(dt);
   window.updateParticles(dt);
+  window.updateObstacles(dt);
+  window.updateExplosions(dt);
 
-  // Shake decay
   window.shake *= 0.9;
 
-  // Clear
+  // audio-driven intensity
+  const audioBoost = window.audioEnergy || 0;
+  if (audioBoost > 0.12) {
+    window.shake = Math.max(window.shake, 2 + audioBoost * 12);
+  }
+
   window.resetTransform();
   window.ctx.clearRect(0, 0, window.w, window.h);
 
-  // Warp / zoom / shake
   window.applyScreenTransform();
 
-  // Draw world
   window.drawRoad(timestamp);
+  window.drawObstacles(window.ctx);
+  window.drawExplosions(window.ctx);
   window.drawParticles(window.ctx);
   window.drawCar(window.ctx, window.w, window.h, window.cx, window.cy);
 
