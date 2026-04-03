@@ -7,3 +7,6 @@ window.lerp = function(a, b, t) {
 window.randRange = function(min, max) {
   return Math.random() * (max - min) + min;
 };
+window.randSign = function() {
+  return Math.random() < 0.5 ? -1 : 1;
+};
