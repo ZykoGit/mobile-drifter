@@ -47,4 +47,9 @@ window.updateHUD = function(dt) {
 window.onLapComplete = function() {
   hud.lap += 1;
   hud.score += 250;
+
+  // unlock next track when you complete first lap of this one
+  if (hud.lap === 2 && window.onTrackCompleted) {
+    window.onTrackCompleted(track.number);
+  }
 };
