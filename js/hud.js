@@ -24,15 +24,14 @@ window.initHUD = function() {
 };
 
 window.updateHUD = function(dt) {
-  const speedKmh = car.speed * 0.1;
+  const speedKmh = car.speed * 0.12;
   hud.speedEl.textContent = speedKmh.toFixed(0);
 
   const driftPct = clamp(Math.abs(car.driftAngle) / 0.6, 0, 1) * 100;
   hud.driftEl.textContent = driftPct.toFixed(0);
 
-  // scoring: speed + drift
   const driftFactor = clamp(Math.abs(car.driftAngle) / 0.7, 0, 1);
-  const gain = (speedKmh * 0.02 + driftFactor * 2.5) * (dt / 16.67);
+  const gain = (speedKmh * 0.03 + driftFactor * 3.0) * (dt / 16.67);
   hud.score += gain;
   hud.scoreEl.textContent = Math.floor(hud.score).toString();
 
@@ -47,5 +46,5 @@ window.updateHUD = function(dt) {
 
 window.onLapComplete = function() {
   hud.lap += 1;
-  hud.score += 200; // lap bonus
+  hud.score += 250;
 };
