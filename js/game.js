@@ -1,64 +1,97 @@
+window.canvas = null;
+window.ctx = null;
+window.cam = {
+  x: 0,
+  y: 0,
+  zoom: 1,
+  screenW: 0,
+  screenH: 0
+};
 window.lastTime = 0;
+window.shake = 0;
 
 window.initGame = function() {
-  const c = document.getElementById('game');
-  initRender(c);
-  setupInput(c);
+  canvas = document.getElementById('game');
+  ctx = canvas.getContext('2d');
 
-  // optional: initAudio('assets/sem_nada_like_loop.mp3'); // add file if you have rights
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 
-  // double-tap / double-click to trigger Phonk Mode
-  let lastTap = 0;
-  c.addEventListener('touchend', () => {
-    const now = performance.now();
-    if (now - lastTap < 300) window.enterPhonkMode();
-    lastTap = now;
-  });
-  c.addEventListener('dblclick', () => window.enterPhonkMode());
-
-  setInterval(() => {
-    if (window.speed > window.maxSpeed * 0.6) {
-      window.shake = Math.max(window.shake, 6);
-    } else if (window.speed > window.maxSpeed * 0.3) {
-      window.shake = Math.max(window.shake, 3);
-    }
-  }, 600);
+  setupInput(canvas);
+  generateProceduralTrack();
+  initCarOnTrack();
+  initHUD();
 
   requestAnimationFrame(gameLoop);
 };
 
-function gameLoop(timestamp) {
-  const dt = timestamp - (window.lastTime || timestamp);
-  window.lastTime = timestamp;
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  cam.screenW = canvas.width;
+  cam.screenH = canvas.height;
+  cam.zoom = Math.min(canvas.width, canvas.height) / 900;
+}
 
-  window.speed += window.accel * dt;
-  if (window.speed > window.maxSpeed) window.speed = window.maxSpeed;
+function updateCamera(dt) {
+  const targetX = car.x;
+  const targetY = car.y;
+  cam.x = lerp(cam.x, targetX, 0.08);
+  cam.y = lerp(cam.y, targetY, 0.08);
 
-  window.updateCar(dt);
-  window.updateParticles(dt);
-  window.updateObstacles(dt);
-  window.updateExplosions(dt);
+  const baseZoom = Math.min(cam.screenW, cam.screenH) / 900;
+  const speedFactor = clamp(car.speed / 900, 0, 1);
+  const targetZoom = baseZoom * (1 - speedFactor * 0.25);
+  cam.zoom = lerp(cam.zoom, targetZoom, 0.05);
 
-  window.shake *= 0.9;
-
-  // audio-driven intensity
-  const audioBoost = window.audioEnergy || 0;
-  if (audioBoost > 0.12) {
-    window.shake = Math.max(window.shake, 2 + audioBoost * 12);
+  if (shake > 0.1) {
+    const sx = (Math.random() * 2 - 1) * shake;
+    const sy = (Math.random() * 2 - 1) * shake;
+    cam.x += sx;
+    cam.y += sy;
+    shake *= 0.9;
+  } else {
+    shake = 0;
   }
+}
 
-  window.resetTransform();
-  window.ctx.clearRect(0, 0, window.w, window.h);
+function drawBackground() {
+  const g = ctx.createLinearGradient(0, 0, 0, cam.screenH);
+  g.addColorStop(0, '#050010');
+  g.addColorStop(0.5, '#020008');
+  g.addColorStop(1, '#000000');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, cam.screenW, cam.screenH);
 
-  window.applyScreenTransform();
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#0b0015';
+  const gridSize = 80 * cam.zoom;
+  for (let x = (cam.x * cam.zoom) % gridSize - gridSize; x < cam.screenW + gridSize; x += gridSize) {
+    ctx.fillRect(x, 0, 1, cam.screenH);
+  }
+  for (let y = (cam.y * cam.zoom) % gridSize - gridSize; y < cam.screenH + gridSize; y += gridSize) {
+    ctx.fillRect(0, y, cam.screenW, 1);
+  }
+  ctx.restore();
+}
 
-  window.drawRoad(timestamp);
-  window.drawObstacles(window.ctx);
-  window.drawExplosions(window.ctx);
-  window.drawParticles(window.ctx);
-  window.drawCar(window.ctx, window.w, window.h, window.cx, window.cy);
+function gameLoop(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
 
-  window.resetTransform();
+  updateCar(dt);
+  updateParticles(dt);
+  updateCamera(dt);
+  updateHUD(dt);
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  drawBackground();
+
+  drawTrack(ctx, cam);
+  drawParticles(ctx, cam);
+  drawCar(ctx, cam);
 
   requestAnimationFrame(gameLoop);
 }
