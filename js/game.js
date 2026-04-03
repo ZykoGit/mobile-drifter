@@ -9,6 +9,7 @@ window.cam = {
 };
 window.lastTime = 0;
 window.shake = 0;
+window.gameRunning = false;
 
 window.initGame = function() {
   canvas = document.getElementById('game');
@@ -22,7 +23,14 @@ window.initGame = function() {
   initCarOnTrack();
   initHUD();
 
-  requestAnimationFrame(gameLoop);
+  const home = document.getElementById('home-screen');
+  const btnStart = document.getElementById('btn-start');
+  btnStart.addEventListener('click', () => {
+    home.style.display = 'none';
+    gameRunning = true;
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+  });
 };
 
 function resizeCanvas() {
@@ -30,19 +38,19 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
   cam.screenW = canvas.width;
   cam.screenH = canvas.height;
-  cam.zoom = Math.min(canvas.width, canvas.height) / 900;
+  cam.zoom = Math.min(canvas.width, canvas.height) / 600; /* bigger world on screen */
 }
 
 function updateCamera(dt) {
   const targetX = car.x;
   const targetY = car.y;
-  cam.x = lerp(cam.x, targetX, 0.08);
-  cam.y = lerp(cam.y, targetY, 0.08);
+  cam.x = lerp(cam.x, targetX, 0.1);
+  cam.y = lerp(cam.y, targetY, 0.1);
 
-  const baseZoom = Math.min(cam.screenW, cam.screenH) / 900;
-  const speedFactor = clamp(car.speed / 900, 0, 1);
-  const targetZoom = baseZoom * (1 - speedFactor * 0.25);
-  cam.zoom = lerp(cam.zoom, targetZoom, 0.05);
+  const baseZoom = Math.min(cam.screenW, cam.screenH) / 600;
+  const speedFactor = clamp(car.speed / 1200, 0, 1);
+  const targetZoom = baseZoom * (1 - speedFactor * 0.2);
+  cam.zoom = lerp(cam.zoom, targetZoom, 0.06);
 
   if (shake > 0.1) {
     const sx = (Math.random() * 2 - 1) * shake;
@@ -64,9 +72,9 @@ function drawBackground() {
   ctx.fillRect(0, 0, cam.screenW, cam.screenH);
 
   ctx.save();
-  ctx.globalAlpha = 0.18;
+  ctx.globalAlpha = 0.22;
   ctx.fillStyle = '#0b0015';
-  const gridSize = 80 * cam.zoom;
+  const gridSize = 120 * cam.zoom;
   for (let x = (cam.x * cam.zoom) % gridSize - gridSize; x < cam.screenW + gridSize; x += gridSize) {
     ctx.fillRect(x, 0, 1, cam.screenH);
   }
@@ -77,7 +85,8 @@ function drawBackground() {
 }
 
 function gameLoop(timestamp) {
-  if (!lastTime) lastTime = timestamp;
+  if (!gameRunning) return;
+
   const dt = timestamp - lastTime;
   lastTime = timestamp;
 
