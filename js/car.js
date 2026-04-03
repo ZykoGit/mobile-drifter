@@ -26,11 +26,10 @@ window.initCarOnTrack = function() {
 
 window.updateCar = function(dt) {
   const dtSec = dt / 1000;
-  const accel = 600;
-  const maxSpeed = 900;
-  const friction = 0.98;
-  const steerStrength = 2.8;
-  const driftFactor = 0.12;
+  const accel = 900;
+  const maxSpeed = 1200;
+  const steerStrength = 3.2;
+  const driftFactor = 0.14;
 
   if (input.throttle > 0) {
     car.speed += accel * dtSec * input.throttle;
@@ -62,15 +61,14 @@ window.updateCar = function(dt) {
   while (diff < -Math.PI) diff += Math.PI * 2;
   car.driftAngle = diff;
 
-  // drift particles
   const driftMag = Math.abs(diff);
-  if (driftMag > 0.15 && car.speed > 200) {
-    const backX = car.x - Math.cos(car.angle) * 20;
-    const backY = car.y - Math.sin(car.angle) * 20;
+  if (driftMag > 0.18 && car.speed > 250) {
+    const backX = car.x - Math.cos(car.angle) * 30;
+    const backY = car.y - Math.sin(car.angle) * 30;
     spawnDriftTrail(backX, backY, velAngle + Math.PI);
   }
 
-  // lap progress (rough: nearest segment)
+  // lap progress
   let bestIdx = car.lastPointIndex;
   let bestDist = Infinity;
   for (let i = 0; i < track.points.length; i++) {
@@ -84,7 +82,6 @@ window.updateCar = function(dt) {
     }
   }
   if (bestIdx < car.lastPointIndex && car.lastPointIndex > track.points.length * 0.6) {
-    // completed lap
     window.onLapComplete();
   }
   car.lastPointIndex = bestIdx;
@@ -94,8 +91,8 @@ window.updateCar = function(dt) {
 window.drawCar = function(ctx, cam) {
   const sx = (car.x - cam.x) * cam.zoom + cam.screenW / 2;
   const sy = (car.y - cam.y) * cam.zoom + cam.screenH / 2;
-  const w = 40 * cam.zoom;
-  const h = 22 * cam.zoom;
+  const w = 70 * cam.zoom;
+  const h = 38 * cam.zoom;
 
   ctx.save();
   ctx.translate(sx, sy);
@@ -104,7 +101,7 @@ window.drawCar = function(ctx, cam) {
   // glow
   ctx.save();
   ctx.shadowColor = '#ff00ff';
-  ctx.shadowBlur = 25;
+  ctx.shadowBlur = 30;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(-w/2, -h/2, w, h);
   ctx.restore();
@@ -115,12 +112,12 @@ window.drawCar = function(ctx, cam) {
 
   // neon edges
   ctx.strokeStyle = '#ff00ff';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3.5;
   ctx.strokeRect(-w/2, -h/2, w, h);
 
   // cockpit
   ctx.fillStyle = '#111122';
-  ctx.fillRect(-w*0.1, -h*0.35, w*0.2, h*0.4);
+  ctx.fillRect(-w*0.12, -h*0.35, w*0.24, h*0.45);
 
   ctx.restore();
 };
