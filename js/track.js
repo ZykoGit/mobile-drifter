@@ -1,42 +1,54 @@
 window.track = {
   points: [],
   width: 120,
-  lapLength: 0
+  lapLength: 0,
+  name: 'Unknown',
+  number: 1
 };
 
-window.generateProceduralTrack = function() {
-  const pts = [];
-  const segments = 80;
-  const baseRadius = 650;
-  let radius = baseRadius;
-  let angle = 0;
-  const angleStep = (Math.PI * 2) / segments;
+function distPointToSegment(px, py, ax, ay, bx, by) {
+  const abx = bx - ax;
+  const aby = by - ay;
+  const apx = px - ax;
+  const apy = py - ay;
+  const abLen2 = abx*abx + aby*aby || 1;
+  let t = (apx*abx + apy*aby) / abLen2;
+  t = clamp(t, 0, 1);
+  const cx = ax + abx * t;
+  const cy = ay + aby * t;
+  const dx = px - cx;
+  const dy = py - cy;
+  return Math.hypot(dx, dy);
+}
 
-  for (let i = 0; i < segments; i++) {
-    // smooth radius variation
-    radius += randRange(-40, 40);
-    radius = clamp(radius, baseRadius * 0.7, baseRadius * 1.3);
+window.loadTrack = async function(id = 'map1') {
+  const res = await fetch(`maps/${id}.json`);
+  const data = await res.json();
 
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    pts.push({ x, y });
+  track.points = data.points || [];
+  track.width = data.widthTrack || 120;
+  track.name = data.name || id;
+  track.number = data.number || 1;
 
-    angle += angleStep + randRange(-0.05, 0.05);
-  }
-
-  // close loop
-  pts.push({ x: pts[0].x, y: pts[0].y });
-
-  track.points = pts;
-
-  // lap length
   let len = 0;
-  for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i].x - pts[i-1].x;
-    const dy = pts[i].y - pts[i-1].y;
-    len += Math.hypot(dx, dy);
+  for (let i = 1; i < track.points.length; i++) {
+    const a = track.points[i-1];
+    const b = track.points[i];
+    len += Math.hypot(b.x - a.x, b.y - a.y);
   }
   track.lapLength = len;
+};
+
+window.isOffTrack = function(x, y) {
+  if (track.points.length < 2) return false;
+  let minDist = Infinity;
+  for (let i = 1; i < track.points.length; i++) {
+    const a = track.points[i-1];
+    const b = track.points[i];
+    const d = distPointToSegment(x, y, a.x, a.y, b.x, b.y);
+    if (d < minDist) minDist = d;
+  }
+  return minDist > track.width * 0.6;
 };
 
 window.drawTrack = function(ctx, cam) {
@@ -45,7 +57,6 @@ window.drawTrack = function(ctx, cam) {
   ctx.save();
   ctx.lineCap = 'round';
 
-  // outer glow
   ctx.strokeStyle = 'rgba(0,229,255,0.3)';
   ctx.lineWidth = track.width * cam.zoom * 1.8;
   ctx.shadowColor = '#00e5ff';
@@ -59,7 +70,6 @@ window.drawTrack = function(ctx, cam) {
   });
   ctx.stroke();
 
-  // main road
   ctx.shadowBlur = 0;
   ctx.strokeStyle = '#0b0b18';
   ctx.lineWidth = track.width * cam.zoom * 1.1;
@@ -72,7 +82,6 @@ window.drawTrack = function(ctx, cam) {
   });
   ctx.stroke();
 
-  // center neon line
   ctx.strokeStyle = 'rgba(255,0,255,0.95)';
   ctx.lineWidth = 4 * cam.zoom;
   ctx.setLineDash([22 * cam.zoom, 18 * cam.zoom]);
