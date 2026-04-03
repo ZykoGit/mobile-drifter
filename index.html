@@ -2,16 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Neon Drift Rush</title>
+  <title>Neon Drift Rush — Top Down</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-
-  <!-- Simple neon SVG favicon (data URI) -->
-  <link rel="icon" type="image/png"
-        href="assets/IMG_3459.png">
-  <!-- Apple touch icon (same SVG as data URI) -->
-  <link rel="apple-touch-icon"
-        href="assets/IMG_3459.png">
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="assets/IMG_3959" type="image/png">
+  <link rel="apple-touch-icon" href="assets/IMG_3959" type="image/png">
 </head>
 <body>
   <canvas id="game"></canvas>
@@ -20,9 +15,14 @@
   <div id="home-screen">
     <div class="home-inner">
       <h1>NEON DRIFT RUSH</h1>
-      <p>Top-down procedural cyberpunk drifting.</p>
+      <p>Top-down cyberpunk drifting.</p>
+
+      <label for="track-select">Level</label>
+      <select id="track-select"></select>
+      <div id="track-lock-msg"></div>
+
       <button id="btn-start">Tap to Start</button>
-      <small>Use arrows on mobile or keyboard on desktop.</small>
+      <small>Use on-screen arrows on mobile or keyboard on desktop.</small>
     </div>
   </div>
 
@@ -38,11 +38,11 @@
     </div>
     <div class="hud-right">
       <div>Lap: <span id="hud-lap">1</span></div>
-      <div>Track: <span id="hud-track">PROC-1</span></div>
+      <div>Track: <span id="hud-track">-</span></div>
     </div>
   </div>
 
-  <!-- Mobile controls (shown only on mobile via JS) -->
+  <!-- Mobile controls -->
   <div id="mobile-controls">
     <button id="btn-left">&#9664;</button>
     <button id="btn-right">&#9654;</button>
@@ -54,6 +54,7 @@
   <script src="js/track.js"></script>
   <script src="js/car.js"></script>
   <script src="js/hud.js"></script>
+  <script src="js/levels.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
